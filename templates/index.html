@@ -1,0 +1,179 @@
+  
+{% extends 'template.html' %}
+{% load static %}
+{% block content %}
+	<style type="text/css">
+		
+		.StripeElement {
+		  box-sizing: border-box;
+
+		  height: 40px;
+
+		  padding: 10px 12px;
+
+		  border: 1px solid transparent;
+		  border-radius: 4px;
+		  background-color: white;
+
+		  box-shadow: 0 1px 3px 0 #e6ebf1;
+		  -webkit-transition: box-shadow 150ms ease;
+		  transition: box-shadow 150ms ease;
+		}
+
+		.StripeElement--focus {
+		  box-shadow: 0 1px 3px 0 #cfd7df;
+		}
+
+		.StripeElement--invalid {
+		  border-color: #fa755a;
+		}
+
+		.StripeElement--webkit-autofill {
+		  background-color: #fefde5 !important;
+		}
+	</style>
+
+
+	<script src="https://js.stripe.com/v3/"></script>
+
+
+
+	
+
+	<div id="container">
+		<div class="column-6">
+			<div id="left-wrapper">
+				<img id="profile-pic" src="{% static 'images/Thumbsup.PNG' %}">
+				<div id="left-wrapper-header">
+					<h3>Want to help out?</h3>
+					<h5>Donate to us today!</h5>
+				</div>
+				<div style="clear:left"></div>
+				<hr>
+				<!-- Add Form-->
+				<form action="{% url 'charge' %}" method="post" id="payment-form">
+					{% csrf_token %}
+					<div class="form-field-12">
+						<label for="amount">Choose Your Amount:</label>
+						<br>
+						<br>
+						<select required name="amount" id="amount">
+						  <option selected value="5">$5 --- There you go</option>
+						  <option value="10">$10 --- Thanks for your help </option>
+						  <option value="25">$15 --- Much appreciated</option>
+						</select>
+					</div>
+
+					<div class="form-field-6">
+						<input required type="text" name="email" placeholder="Email">
+					</div>
+
+					<div class="form-field-6">
+						<input required type="text" name="nickname" placeholder="Nickname">
+					</div>
+
+				  <div class="form-row">
+				    <label for="card-element">
+				      Credit or Debit Card
+				    </label>
+				    <div id="card-element">
+				    </div>
+
+				    <div id="card-errors" role="alert"></div>
+				  </div>
+				  
+				  <div style="clear:left"></div>
+				  <hr>
+
+				 	<input  class="myButton" style="background-color: #B0C4DE" type="submit" value="Submit Payment" name="">
+
+				</form>
+
+			
+			</div>
+		</div>
+
+		<div class="column-6">
+			<div id="right-wrapper">
+
+
+				<h3>If you want to help out X, consider donating to us!</h3>
+
+				<p>Thank you!</p>
+				<hr>
+				<a href="https://github.com/detacirbaf/buyproject" target="_blank" class="myButton">GitHub</a>
+			</div>
+		</div>
+	</div>
+
+
+
+
+
+
+	<script>
+		var stripe = Stripe('YOUR PUBLIC KEY');
+
+		var elements = stripe.elements();
+
+	
+		var style = {
+		  base: {
+		    color: '#32325d',
+		    fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+		    fontSmoothing: 'antialiased',
+		    fontSize: '16px',
+		    '::placeholder': {
+		      color: '#aab7c4'
+		    }
+		  },
+		  invalid: {
+		    color: '#fa755a',
+		    iconColor: '#fa755a'
+		  }
+		};
+
+		var card = elements.create('card', {style: style});
+
+		card.mount('#card-element');
+
+		card.addEventListener('change', function(event) {
+		  var displayError = document.getElementById('card-errors');
+		  if (event.error) {
+		    displayError.textContent = event.error.message;
+		  } else {
+		    displayError.textContent = '';
+		  }
+		});
+
+		// Handle form submission.
+		var form = document.getElementById('payment-form');
+		form.addEventListener('submit', function(event) {
+		  event.preventDefault();
+
+		  stripe.createToken(card).then(function(result) {
+		    if (result.error) {
+		      // Inform user in case something went wrong
+		      var errorElement = document.getElementById('card-errors');
+		      errorElement.textContent = result.error.message;
+		    } else {
+		      stripeTokenHandler(result.token);
+		    }
+		  });
+		});
+
+		function stripeTokenHandler(token) {
+		  // Insert token ID 
+		  var form = document.getElementById('payment-form');
+		  var hiddenInput = document.createElement('input');
+		  hiddenInput.setAttribute('type', 'hidden');
+		  hiddenInput.setAttribute('name', 'stripeToken');
+		  hiddenInput.setAttribute('value', token.id);
+		  form.appendChild(hiddenInput);
+
+		  // Submit 
+		  form.submit();
+		}
+	</script>
+	
+{% endblock content %}
